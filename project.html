@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عرض النماذج | تحسينك</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+
+<style>
+.gallery img {
+    cursor: pointer;
+    transition: 0.3s;
+}
+.gallery img:hover {
+    transform: scale(1.03);
+}
+
+/* Lightbox */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 9999;
+}
+
+.lightbox img {
+    max-width: 92%;
+    max-height: 80vh;
+    border-radius: 14px;
+    transition: opacity 0.3s ease;
+}
+
+.counter {
+    color: #fff;
+    margin-top: 15px;
+    font-size: 16px;
+}
+
+.controls {
+    margin-top: 20px;
+}
+
+.controls button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 30px;
+    background: #25D366;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.close-btn {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    background: red;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    color: #fff;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">تحسينك 🇸🇦</div>
+</header>
+
+<section class="section">
+
+<div class="section-title">
+    <h2 id="title">نماذج الأعمال</h2>
+</div>
+
+<div class="grid gallery" id="gallery"></div>
+
+</section>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+    <button class="close-btn" onclick="closeLightbox()">✕</button>
+    <img id="lightbox-img">
+    <div class="counter" id="counter"></div>
+    <div class="controls">
+        <button onclick="prevImage()">السابق</button>
+        <button onclick="nextImage()">التالي</button>
+    </div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const type = params.get("type");
+
+const gallery = document.getElementById("gallery");
+const title = document.getElementById("title");
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightbox-img");
+const counter = document.getElementById("counter");
+
+let images = [];
+let currentIndex = 0;
+let touchStartX = 0;
+let touchEndX = 0;
+
+const data = {
+    enjaz: { name: "نماذج سجل الإنجاز", folder: "enjaz", count: 5 },
+    nafes: { name: "نماذج سجل نافس", folder: "nafes", count: 5 },
+    khitat: { name: "نماذج الخطط العلاجية", folder: "khitat", count: 5 }
+};
+
+if (data[type]) {
+    title.textContent = data[type].name;
+
+    for (let i = 1; i <= data[type].count; i++) {
+        const imgPath = `images/${data[type].folder}/${i}.jpg`;
+        images.push(imgPath);
+
+        const img = document.createElement("img");
+        img.src = imgPath;
+        img.style.width = "100%";
+        img.style.borderRadius = "12px";
+        img.style.marginBottom = "20px";
+        img.onclick = () => openLightbox(i - 1);
+        gallery.appendChild(img);
+    }
+}
+
+function openLightbox(index) {
+    currentIndex = index;
+    updateImage();
+    lightbox.style.display = "flex";
+}
+
+function closeLightbox() {
+    lightbox.style.display = "none";
+}
+
+function updateImage() {
+    lightboxImg.style.opacity = 0;
+    setTimeout(() => {
+        lightboxImg.src = images[currentIndex];
+        counter.textContent = `${currentIndex + 1} من ${images.length}`;
+        lightboxImg.style.opacity = 1;
+    }, 150);
+}
+
+function nextImage() {
+    currentIndex = (currentIndex + 1) % images.length;
+    updateImage();
+}
+
+function prevImage() {
+    currentIndex = (currentIndex - 1 + images.length) % images.length;
+    updateImage();
+}
+
+/* دعم السحب */
+lightbox.addEventListener("touchstart", e => {
+    touchStartX = e.changedTouches[0].screenX;
+});
+
+lightbox.addEventListener("touchend", e => {
+    touchEndX = e.changedTouches[0].screenX;
+    if (touchEndX < touchStartX - 50) nextImage();
+    if (touchEndX > touchStartX + 50) prevImage();
+});
+
+/* إغلاق عند الضغط خارج الصورة */
+lightbox.addEventListener("click", function(e) {
+    if (e.target === lightbox) {
+        closeLightbox();
+    }
+});
+
+/* إغلاق بزر ESC */
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+        closeLightbox();
+    }
+});
+</script>
+</body>
+</html>
